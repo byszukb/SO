@@ -1,0 +1,16 @@
+git init
+cat > .gitignore << 'EOF'
+*.log
+*.tar.gz
+*.tar.bz2
+downloaded_logs/
+*.tmp
+*.temp
+EOF
+git add .
+git commit -m "Initial commit: projekt analizy logów"
+git status
+git status --ignored
+git checkout -b develop
+git remote add origin https://github.com/byszukb/SO.git
+git push -u origin develop
