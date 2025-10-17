@@ -1,0 +1,6 @@
+*.log
+*.tar.gz
+*.tar.bz2
+downloaded_logs/
+*.tmp
+*.temp
