@@ -1,0 +1,17 @@
+#!/bin/bash
+
+> formatted_errors.txt
+
+grep -E ' 5[0-9]{2} ' server_logs.txt | while IFS=' ' read -r c1 c2 c3 c4 c5 c6 c7 c8 c9; do
+  c5_upper=$(echo "$c5" | tr 'a-z' 'A-Z')
+  c8_upper=$(echo "$c8" | tr 'a-z' 'A-Z')
+  c9_upper=$(echo "$c9" | tr 'a-z' 'A-Z')
+  echo "$c1|$c2|$c3|$c4|$c5_upper|$c6|$c7|$c8_upper|$c9_upper" >> formatted_errors.txt
+done
+
+total=$(grep -E ' 5[0-9]{2} ' server_logs.txt | wc -l | tr -d ' ')
+
+echo "===" >> formatted_errors.txt
+echo "TOTAL: $total" >> formatted_errors.txt
+
+cat formatted_errors.txt

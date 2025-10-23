@@ -1,0 +1,9 @@
+#!/bin/bash
+
+> recent_files.txt
+find reports/ -name "*.txt" -mmin -60 -type f > tmp_files.txt
+while read file; do
+  lines=$(wc -l < "$file")
+  echo "$file: $lines" >> recent_files.txt
+done < tmp_files.txt
+rm tmp_files.txt

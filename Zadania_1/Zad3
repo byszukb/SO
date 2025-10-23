@@ -1,0 +1,5 @@
+#!/bin/bash
+
+grep ' POST ' server_logs.txt | grep -E ' 20[01] ' | cut -d' ' -f5 | sort | uniq -c | sort -rn | while read count endpoint; do
+  echo "$endpoint: $count"
+done > successful_posts.txt

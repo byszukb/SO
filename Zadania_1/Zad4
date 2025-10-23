@@ -1,0 +1,2 @@
+grep Firefox server_logs.txt | cut -d' ' -f1,2 > firefox_times.txt
+cut -d' ' -f2 firefox_times.txt | cut -c1-5 | sort -u > firefox_hours.txt

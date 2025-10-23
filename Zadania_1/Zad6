@@ -1,0 +1,16 @@
+#!/bin/bash
+
+cut -d' ' -f3 server_logs.txt | sort | uniq -c | sort -rn | head -3 > tmp_top3.txt
+
+> top3_summary.txt
+
+while read count ip; do
+  grep " $ip " server_logs.txt > "ip_${ip}.log"
+
+  lines=$(wc -l < "ip_${ip}.log")
+
+  echo "ip_${ip}.log: $lines lines" >> top3_summary.txt
+done < tmp_top3.txt
+
+
+rm tmp_top3.txt

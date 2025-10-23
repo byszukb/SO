@@ -1,0 +1,14 @@
+#!/bin/bash
+
+tar -czf logs_backup.tar.gz server_logs.txt ip_*.log
+
+tar -cf reports_backup.tar reports/
+
+> archive_contents.txt
+
+echo "=== logs_backup.tar.gz ===" >> archive_contents.txt
+tar -tzf logs_backup.tar.gz >> archive_contents.txt
+echo "" >> archive_contents.txt
+
+echo "=== reports_backup.tar ===" >> archive_contents.txt
+tar -tf reports_backup.tar >> archive_contents.txt

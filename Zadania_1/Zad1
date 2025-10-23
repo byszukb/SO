@@ -1,0 +1,3 @@
+mkdir -p reports/{errors,statistics,hourly} && touch reports/{errors,statistics,hourly}/{summary,details,raw_data}.txt
+cp server_logs.txt reports/errors/errors_log.txt && cp server_logs.txt reports/statistics/stats_log.txt && cp server_logs.txt reports/hourly/hourly_log.txt
+find reports -type f -exec chmod 644 {} +

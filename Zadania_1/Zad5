@@ -1,0 +1,18 @@
+declare -A os_sum
+declare -A os_count
+
+while read -r date time ip method endpoint status response_time browser os; do
+    os_sum[$os]=$(echo "${os_sum[$os]:-0} + $response_time" | bc)
+    os_count[$os]=$((${os_count[$os]:-0} + 1))
+done < server_logs.txt
+
+> temp_results.txt
+for os in "${!os_sum[@]}"; do
+    avg=$(echo "scale=3; ${os_sum[$os]} / ${os_count[$os]}" | bc)
+    if [[ $avg == .* ]]; then
+        avg="0$avg"
+    fi
+    echo "$os $avg" >> temp_results.txt
+done
+
+sort temp_results.txt > os_performance.txt
