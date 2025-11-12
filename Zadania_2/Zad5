@@ -1,0 +1,34 @@
+if [ $# -ne 1 ]; then
+    echo "Error: Expected exactly one argument" >&2
+    exit 1
+fi
+
+text=$1
+
+text=${text,,}
+
+text=${text// /-}
+
+result=""
+for (( i=0; i<${#text}; i++ )); do
+    char="${text:$i:1}"
+    if [[ $char =~ [a-z0-9-] ]]; then
+        result="${result}${char}"
+    fi
+done
+text=$result
+
+while [[ $text == *--* ]]; do
+    text=${text//--/-}
+done
+
+while [[ $text == -* ]]; do
+    text=${text#-}
+done
+
+while [[ $text == *- ]]; do
+    text=${text%-}
+done
+
+echo "$text"
+exit 0

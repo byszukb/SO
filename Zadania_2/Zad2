@@ -1,0 +1,17 @@
+if [ $# -eq 0 ]; then
+    echo "Error: No arguments provided" >&2
+    exit 1
+fi
+
+sum=0
+
+for arg in "$@"; do
+    if ! [[ $arg =~ ^-?[0-9]+$ ]]; then
+        echo "Error: '$arg' is not a valid integer" >&2
+        exit 1
+    fi
+    sum=$((sum + arg))
+done
+
+echo "$sum"
+exit 0

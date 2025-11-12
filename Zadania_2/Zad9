@@ -1,0 +1,186 @@
+#!/bin/bash
+
+solution() {
+    local action="$1"
+    local type="$2"
+    local definition="$3"
+    local bashrc_file="$HOME/.bashrc"
+    local begin_marker="# BEGIN CONFIG_MANAGER"
+    local end_marker="# END CONFIG_MANAGER"
+    
+    section_exists() {
+        grep -q "^${begin_marker}$" "$bashrc_file" 2>/dev/null && \
+        grep -q "^${end_marker}$" "$bashrc_file" 2>/dev/null
+    }
+    
+    ensure_section() {
+        if ! section_exists; then
+            if [ -f "$bashrc_file" ]; then
+                echo "" >> "$bashrc_file"
+            fi
+            echo "$begin_marker" >> "$bashrc_file"
+            echo "$end_marker" >> "$bashrc_file"
+        fi
+    }
+    
+    extract_name() {
+        local def="$1"
+        echo "$def" | cut -d'=' -f1
+    }
+    
+    definition_exists() {
+        local name="$1"
+        local pattern
+        
+        if [ "$type" = "var" ]; then
+            pattern="^export ${name}="
+        elif [ "$type" = "alias" ]; then
+            pattern="^alias ${name}="
+        fi
+        
+        if [ ! -f "$bashrc_file" ]; then
+            return 1
+        fi
+        
+        local in_section=false
+        while IFS= read -r line || [ -n "$line" ]; do
+            if [ "$line" = "$begin_marker" ]; then
+                in_section=true
+            elif [ "$line" = "$end_marker" ]; then
+                in_section=false
+            elif [ "$in_section" = true ] && echo "$line" | grep -q "$pattern"; then
+                return 0
+            fi
+        done < "$bashrc_file"
+        return 1
+    }
+    
+    format_definition() {
+        local def="$1"
+        local name=$(extract_name "$def")
+        local value="${def#*=}"
+        
+        if [ "$type" = "var" ]; then
+            echo "export ${name}=${value}"
+        elif [ "$type" = "alias" ]; then
+            if [[ "$value" =~ ^\'.*\'$ ]]; then
+                value="${value#\'}"
+                value="${value%\'}"
+            elif [[ "$value" =~ ^\".*\"$ ]]; then
+                value="${value#\"}"
+                value="${value%\"}"
+            fi
+            echo "alias ${name}='${value}'"
+        fi
+    }
+    
+    add_definition() {
+        local def="$1"
+        local name=$(extract_name "$def")
+        local formatted=$(format_definition "$def")
+        
+        ensure_section
+        
+        if definition_exists "$name"; then
+            return 0
+        fi
+        
+        local temp_file=$(mktemp)
+        if [ -f "$bashrc_file" ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+                if [ "$line" = "$end_marker" ]; then
+                    echo "$formatted" >> "$temp_file"
+                    echo "$line" >> "$temp_file"
+                else
+                    echo "$line" >> "$temp_file"
+                fi
+            done < "$bashrc_file"
+        else
+            echo "$begin_marker" > "$temp_file"
+            echo "$formatted" >> "$temp_file"
+            echo "$end_marker" >> "$temp_file"
+        fi
+        mv "$temp_file" "$bashrc_file"
+    }
+    
+    remove_definition() {
+        local name="$1"
+        local pattern
+        
+        if [ "$type" = "var" ]; then
+            pattern="^export ${name}="
+        elif [ "$type" = "alias" ]; then
+            pattern="^alias ${name}="
+        fi
+        
+        if [ ! -f "$bashrc_file" ]; then
+            return 0
+        fi
+        
+        local temp_file=$(mktemp)
+        local in_section=false
+        
+        while IFS= read -r line || [ -n "$line" ]; do
+            if [ "$line" = "$begin_marker" ]; then
+                in_section=true
+                echo "$line" >> "$temp_file"
+            elif [ "$line" = "$end_marker" ]; then
+                in_section=false
+                echo "$line" >> "$temp_file"
+            elif [ "$in_section" = true ] && echo "$line" | grep -q "$pattern"; then
+                continue
+            else
+                echo "$line" >> "$temp_file"
+            fi
+        done < "$bashrc_file"
+        
+        mv "$temp_file" "$bashrc_file"
+    }
+    
+    list_definitions() {
+        if ! section_exists; then
+            return 0  
+        fi
+        
+        local in_section=false
+        while IFS= read -r line || [ -n "$line" ]; do
+            if [ "$line" = "$begin_marker" ]; then
+                in_section=true
+            elif [ "$line" = "$end_marker" ]; then
+                in_section=false
+            elif [ "$in_section" = true ]; then
+                if [ "$type" = "var" ] && echo "$line" | grep -q "^export "; then
+                    echo "${line#export }"
+                elif [ "$type" = "alias" ] && echo "$line" | grep -q "^alias "; then
+                    echo "${line#alias }"
+                fi
+            fi
+        done < "$bashrc_file"
+    }
+    
+    case "$action" in
+        add)
+            if [ -z "$definition" ]; then
+                echo "Error: definition required for add action" >&2
+                return 1
+            fi
+            add_definition "$definition"
+            ;;
+        remove)
+            if [ -z "$definition" ]; then
+                echo "Error: definition name required for remove action" >&2
+                return 1
+            fi
+            local name=$(extract_name "$definition")
+            remove_definition "$name"
+            ;;
+        list)
+            list_definitions
+            ;;
+        *)
+            echo "Error: unknown action '$action'. Use: add, remove, or list" >&2
+            return 1
+            ;;
+    esac
+}
+

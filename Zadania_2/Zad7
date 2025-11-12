@@ -1,0 +1,73 @@
+operation=""
+num1=""
+num2=""
+
+while getopts "o:a:b:" opt; do
+    case $opt in
+        o)
+            operation=$OPTARG
+            ;;
+        a)
+            num1=$OPTARG
+            ;;
+        b)
+            num2=$OPTARG
+            ;;
+        \?)
+            echo "Error: Invalid option" >&2
+            exit 1
+            ;;
+        :)
+            echo "Error: Option -$OPTARG requires an argument" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ -z "$operation" ] || [ -z "$num1" ] || [ -z "$num2" ]; then
+    echo "Error: All options -o, -a, and -b are required" >&2
+    exit 1
+fi
+
+if ! [[ $num1 =~ ^-?[0-9]+$ ]]; then
+    echo "Error: '$num1' is not a valid integer" >&2
+    exit 1
+fi
+
+if ! [[ $num2 =~ ^-?[0-9]+$ ]]; then
+    echo "Error: '$num2' is not a valid integer" >&2
+    exit 1
+fi
+
+case $operation in
+    add)
+        result=$((num1 + num2))
+        ;;
+    sub)
+        result=$((num1 - num2))
+        ;;
+    mul)
+        result=$((num1 * num2))
+        ;;
+    div)
+        if [ $num2 -eq 0 ]; then
+            echo "Error: Division by zero" >&2
+            exit 1
+        fi
+        result=$((num1 / num2))
+        ;;
+    mod)
+        if [ $num2 -eq 0 ]; then
+            echo "Error: Division by zero" >&2
+            exit 1
+        fi
+        result=$((num1 % num2))
+        ;;
+    *)
+        echo "Error: Invalid operation '$operation'. Use: add, sub, mul, div, or mod" >&2
+        exit 1
+        ;;
+esac
+
+echo "$result"
+exit 0

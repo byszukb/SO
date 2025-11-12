@@ -1,0 +1,26 @@
+if [ $# -ne 1 ]; then
+    echo "Error: Expected exactly one argument" >&2
+    exit 1
+fi
+
+num=$1
+
+if ! [[ $num =~ ^[0-9]+$ ]]; then
+    echo "Error: Argument must be a non-negative integer" >&2
+    exit 1
+fi
+
+if [ $num -eq 0 ]; then
+    echo "0"
+    exit 0
+fi
+
+binary=""
+while [ $num -gt 0 ]; do
+    remainder=$((num % 2))           
+    binary="${remainder}${binary}"
+    num=$((num / 2))            
+done
+
+echo "$binary"
+exit 0

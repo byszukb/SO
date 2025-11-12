@@ -1,0 +1,11 @@
+declare -A count
+
+for element in "$@"; do
+    ((count[$element]++))
+done
+
+for key in $(printf '%s\n' "${!count[@]}" | sort); do
+    echo "$key: ${count[$key]}"
+done
+
+exit 0

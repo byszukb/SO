@@ -1,0 +1,42 @@
+if [ $# -ne 1 ]; then
+    echo "Error: Expected exactly one argument" >&2
+    exit 1
+fi
+
+N=$1
+
+if ! [[ $N =~ ^[0-9]+$ ]] || [ $N -lt 2 ]; then
+    echo "Error: Argument must be an integer >= 2" >&2
+    exit 1
+fi
+
+declare -A is_prime
+
+for (( i=2; i<=N; i++ )); do
+    is_prime[$i]=1
+done
+
+sqrt_n=1
+while [ $((sqrt_n * sqrt_n)) -le $N ]; do
+    sqrt_n=$((sqrt_n + 1))
+done
+sqrt_n=$((sqrt_n - 1))
+
+for (( i=2; i<=sqrt_n; i++ )); do
+    if [ ${is_prime[$i]} -eq 1 ]; then
+        for (( j=i*i; j<=N; j+=i )); do
+            is_prime[$j]=0
+        done
+    fi
+done
+
+primes=""
+for (( i=2; i<=N; i++ )); do
+    if [ ${is_prime[$i]} -eq 1 ]; then
+        primes="$primes$i "
+    fi
+done
+
+primes=${primes% }
+echo "$primes"
+exit 0
